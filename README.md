@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/athos/symbol-analyzer.png)](https://travis-ci.org/athos/symbol-analyzer)
 
-Clojoure code analyzer that tells us how each symbol is being used in the code
+Clojure code analyzer that tells us how each symbol is being used in the code
 
 ## Usage
 
