@@ -18,7 +18,7 @@
 
 (defmulti ^:private convert* p/node-tag)
 
-(defmethod convert* :root [x]
+(defmethod convert* p/+root-tag+ [x]
   (mapv convert* (essential-content x)))
 
 (defmethod convert* :nil [x]

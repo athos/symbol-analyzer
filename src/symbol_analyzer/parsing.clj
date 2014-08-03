@@ -2,6 +2,8 @@
   (:require [net.cgrand.parsley :as p]
             [net.cgrand.sjacket.parser :as s]))
 
+(def ^:constant +root-tag+ ::s/root)
+
 (def new-id
   (let [n (atom 0)]
     (fn []
@@ -16,7 +18,7 @@
                 node)))]
     (p/make-parser {:main :sexpr*
                     :space [s/space-nodes :*]
-                    :root-tag :root
+                    :root-tag +root-tag+
                     :make-node make-node
                     }
                    s/rules)))
