@@ -6,6 +6,5 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojars.trptcolin/sjacket "0.1.4" :exclusions [[org.clojure/clojure]]]
                  [org.clojure/core.match "0.2.1"]]
-  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.5"]
-                                  [org.clojars.trptcolin/sjacket "0.1.4" :exclusions [[org.clojure/clojure]]]]
+  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.5"]]
                    :source-paths ["src" "dev"]}})
