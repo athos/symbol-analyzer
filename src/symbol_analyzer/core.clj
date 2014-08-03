@@ -21,7 +21,7 @@
 ;;
 (defn analyze [root & {:keys [ns suppress-eval?]}]
   (let [ns (or ns *ns*)
-        sexps (convert root :symbol-key :id)
+        sexps (convert root :ns ns :symbol-key :id)
         ext (fn [info sexp]
               (when-not suppress-eval?
                 (binding [*ns* ns]
