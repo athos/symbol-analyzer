@@ -102,7 +102,7 @@
 (declare convert-seq)
 
 (defmethod convert* :list [x]
-  (convert-seq x))
+  (doall (convert-seq x)))
 
 (defmethod convert* :vector [x]
   (vec (convert-seq x)))
