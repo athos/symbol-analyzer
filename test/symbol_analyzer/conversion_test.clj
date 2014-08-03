@@ -1,10 +1,10 @@
 (ns symbol-analyzer.conversion-test
   (:require [symbol-analyzer.conversion :refer :all]
-            [symbol-analyzer.parsing :as p]
+            [net.cgrand.sjacket.parser :as p]
             [clojure.test :refer :all]))
 
 (defn- parse-and-convert=read-string [code]
-  (= (first (convert (p/parse code)))
+  (= (first (convert (p/parser code)))
      (read-string code)))
 
 (deftest convert-to-nil
@@ -45,7 +45,7 @@
   (is (parse-and-convert=read-string "\"foo\\123bar\"")))
 
 (deftest convert-to-regex
-  (is (str (first (convert (p/parse "#\"\\[\\]?(\\\")\\\\\""))))
+  (is (str (first (convert (p/parser "#\"\\[\\]?(\\\")\\\\\""))))
       (str (read-string "#\"\\[\\]?(\\\")\\\\\""))))
 
 (deftest convert-to-fn)
