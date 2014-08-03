@@ -6,10 +6,8 @@
 ;;
 ;; Environment
 ;;
-(defn- toplevel-env
-  ([] (toplevel-env *ns*))
-  ([ns]
-   {:ns (the-ns ns) :locals {}}))
+(defn- make-env [ns locals]
+  {:ns (the-ns ns) :locals locals})
 
 (defn- lookup [env n]
   (or ((:locals env) n)
@@ -91,8 +89,8 @@
         #_=> (extract-from-forms env form)
         :else {}))
 
-(defn extract [form & {:keys [ns]}]
-  (extract* (toplevel-env (or ns *ns*)) form))
+(defn extract [form & {:keys [ns locals]}]
+  (extract* (make-env (or ns *ns*) (or locals {})) form))
 
 ;;
 ;; Implementation of etraction methods
