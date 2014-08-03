@@ -1,7 +1,11 @@
 (ns symbol-analyzer.extraction
   (:refer-clojure :exclude [extend])
-  (:require [symbol-analyzer.conversion :refer [get-id]]
-            [clojure.core.match :refer [match]]))
+  (:require [clojure.core.match :refer [match]]))
+
+(def ^:private ^:dynamic *symbol-key*)
+
+(defn- get-id [x]
+  (get (meta x) *symbol-key*))
 
 ;;
 ;; Environment
@@ -89,8 +93,9 @@
         #_=> (extract-from-forms env form)
         :else {}))
 
-(defn extract [form & {:keys [ns locals]}]
-  (extract* (make-env (or ns *ns*) (or locals {})) form))
+(defn extract [form & {:keys [ns locals symbol-key]}]
+  (binding [*symbol-key* (or symbol-key :id)]
+    (extract* (make-env (or ns *ns*) (or locals {})) form)))
 
 ;;
 ;; Implementation of etraction methods

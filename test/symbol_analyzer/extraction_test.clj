@@ -1,13 +1,12 @@
 (ns symbol-analyzer.extraction-test
   (:require [symbol-analyzer.extraction :refer :all]
-            [symbol-analyzer.conversion :as c]
             [clojure.test :refer :all]
             [clojure.core.match :refer [match]]))
 
 (defn- install-data-readers [n]
   (letfn [(make-annotator [id]
             (fn [form]
-              (vary-meta form assoc ::c/id id)))]
+              (vary-meta form assoc :id id)))]
     (dotimes [i n]
       (alter-var-root #'default-data-readers assoc (symbol (str '$ i)) (make-annotator i)))))
 
@@ -15,7 +14,7 @@
 
 (defmacro extracted [form expected]
   (let [v (gensym 'v)]
-    `(let [~v (extract '~form :ns *ns*)]
+    `(let [~v (extract '~form :ns *ns* :symbol-key :id)]
        (and ~@(for [[id info] expected]
                 `(match (get ~v ~id)
                    ~info true
