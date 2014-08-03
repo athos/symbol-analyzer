@@ -3,17 +3,19 @@
             [symbol-analyzer.extraction :refer [extract]])
   (:import net.cgrand.parsley.Node))
 
-;;
-;; Annotation
-;;
-(defn- annotate [node info]
-  (if (string? node)
-    node
+(defn- postwalk-nodes [f node]
+  (if (instance? Node node)
     (let [{:keys [content]} node
-          node' (assoc node :content (mapv #(annotate % info) content))]
-      (if-let [usage (and (= (:tag node) :symbol) (info (:id node)))]
-        (assoc node' :usage usage)
-        node'))))
+          node' (assoc node :content (mapv #(postwalk-nodes f %) content))]
+      (f node'))
+    node))
+
+(defn- annotate [node info]
+  (-> (fn [node]
+        (if-let [usage (and (= (:tag node) :symbol) (info (:id node)))]
+          (assoc node :usage usage)
+          node))
+      (postwalk-nodes node)))
 
 ;;
 ;; Entry point
