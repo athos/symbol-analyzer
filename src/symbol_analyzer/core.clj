@@ -26,6 +26,6 @@
               (when-not suppress-eval?
                 (binding [*ns* ns]
                   (eval sexp)))
-              (merge info (extract ns sexp)))
+              (merge info (extract sexp :ns ns)))
         info (reduce ext {} sexps)]
     (annotate root info)))

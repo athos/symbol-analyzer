@@ -15,7 +15,7 @@
 
 (defmacro extracted [form expected]
   (let [v (gensym 'v)]
-    `(let [~v (extract *ns* '~form)]
+    `(let [~v (extract '~form :ns *ns*)]
        (and ~@(for [[id info] expected]
                 `(match (get ~v ~id)
                    ~info true

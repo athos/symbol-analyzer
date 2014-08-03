@@ -91,10 +91,8 @@
         #_=> (extract-from-forms env form)
         :else {}))
 
-(defn extract
-  ([form] (extract *ns* form))
-  ([ns form]
-     (extract* (toplevel-env ns) form)))
+(defn extract [form & {:keys [ns]}]
+  (extract* (toplevel-env (or ns *ns*)) form))
 
 ;;
 ;; Implementation of etraction methods
