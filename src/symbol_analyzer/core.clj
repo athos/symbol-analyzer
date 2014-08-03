@@ -1,6 +1,5 @@
 (ns symbol-analyzer.core
-  (:require [clojure.walk :refer [postwalk]]
-            [symbol-analyzer.conversion :refer [convert]]
+  (:require [symbol-analyzer.conversion :refer [convert]]
             [symbol-analyzer.extraction :refer [extract]])
   (:import net.cgrand.parsley.Node))
 
