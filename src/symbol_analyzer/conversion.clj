@@ -3,9 +3,10 @@
   (:import net.cgrand.parsley.Node))
 
 (def ^:private ^:dynamic *conv-ns*)
+(def ^:private ^:dynamic *symbol-key*)
 
 (defn get-id [x]
-  (::id (meta x)))
+  (get (meta x) *symbol-key*))
 
 (defn- remove-whitespaces [content]
   (filterv #(or (not (instance? Node %))
@@ -32,7 +33,7 @@
               (symbol (p/node-content maybe-ns) (p/node-content maybe-name))
               (symbol (p/node-content maybe-ns)))]
     (with-meta sym
-      {::id (:id x)})))
+      {*symbol-key* (:id x)})))
 
 (defmethod convert* :keyword [x]
   (let [[colon maybe-ns _ maybe-name] (p/node-content* x)]
@@ -112,8 +113,9 @@
 (defmethod convert* :set [x]
   (set (convert-seq x)))
 
-(defn convert [root & {:keys [ns]}]
-  (binding [*conv-ns* (the-ns (or ns *ns*))]
+(defn convert [root & {:keys [ns symbol-key]}]
+  (binding [*conv-ns* (the-ns (or ns *ns*))
+            *symbol-key* (or symbol-key :id)]
     (convert* root)))
 
 (defn- convert-seq [x]
