@@ -2,6 +2,8 @@
   (:require [symbol-analyzer.parsing :as p])
   (:import net.cgrand.parsley.Node))
 
+(def ^:private ^:dynamic *conv-ns*)
+
 (defn get-id [x]
   (::id (meta x)))
 
@@ -12,6 +14,7 @@
 
 (defn- essential-content [x]
   (remove-whitespaces (p/node-content* x)))
+
 (defmulti ^:private convert* p/node-tag)
 
 (defmethod convert* :root [x]
@@ -109,8 +112,9 @@
 (defmethod convert* :set [x]
   (set (convert-seq x)))
 
-(defn convert [root]
-  (convert* root))
+(defn convert [root & {:keys [ns]}]
+  (binding [*conv-ns* (the-ns (or ns *ns*))]
+    (convert* root)))
 
 (defn- convert-seq [x]
   (->> (essential-content x)
