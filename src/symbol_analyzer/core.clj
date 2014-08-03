@@ -3,12 +3,25 @@
             [symbol-analyzer.extraction :refer [extract]])
   (:import net.cgrand.parsley.Node))
 
+(def ^:private new-id
+  (let [n (atom 0)]
+    (fn []
+      (swap! n inc)
+      @n)))
+
 (defn- postwalk-nodes [f node]
   (if (instance? Node node)
     (let [{:keys [content]} node
           node' (assoc node :content (mapv #(postwalk-nodes f %) content))]
       (f node'))
     node))
+
+(defn- mark [node]
+  (-> (fn [node]
+        (if (= (:tag node) :symbol)
+          (assoc node :id (new-id))
+          node))
+      (postwalk-nodes node)))
 
 (defn- annotate [node info]
   (-> (fn [node]
@@ -22,6 +35,7 @@
 ;;
 (defn analyze [root & {:keys [ns suppress-eval?]}]
   (let [ns (or ns *ns*)
+        root (mark root)
         sexps (convert root :ns ns :symbol-key :id)
         ext (fn [info sexp]
               (when-not suppress-eval?
