@@ -1,6 +1,15 @@
 (ns symbol-analyzer.conversion
-  (:require [symbol-analyzer.parsing :as p])
+  (:require [net.cgrand.sjacket.parser :as p])
   (:import net.cgrand.parsley.Node))
+
+(defn- node-tag [node]
+  (:tag node))
+
+(defn- node-content* [node]
+  (:content node))
+
+(defn- node-content [node]
+  (first (node-content* node)))
 
 (def ^:private ^:dynamic *conv-ns*)
 (def ^:private ^:dynamic *symbol-key*)
@@ -10,50 +19,50 @@
 
 (defn- remove-whitespaces [content]
   (filterv #(or (not (instance? Node %))
-                (not (#{:whitespace :newline :comment :discard} (p/node-tag %))))
+                (not (#{:whitespace :newline :comment :discard} (node-tag %))))
            content))
 
 (defn- essential-content [x]
-  (remove-whitespaces (p/node-content* x)))
+  (remove-whitespaces (node-content* x)))
 
-(defmulti ^:private convert* p/node-tag)
+(defmulti ^:private convert* node-tag)
 
-(defmethod convert* p/+root-tag+ [x]
+(defmethod convert* ::p/root [x]
   (mapv convert* (essential-content x)))
 
 (defmethod convert* :nil [x]
   nil)
 
 (defmethod convert* :boolean [x]
-  ({"true" true, "false" false} (p/node-content x)))
+  ({"true" true, "false" false} (node-content x)))
 
 (defmethod convert* :symbol [x]
-  (let [[maybe-ns _ maybe-name] (p/node-content* x)
+  (let [[maybe-ns _ maybe-name] (node-content* x)
         sym (if maybe-name
-              (symbol (p/node-content maybe-ns) (p/node-content maybe-name))
-              (symbol (p/node-content maybe-ns)))]
+              (symbol (node-content maybe-ns) (node-content maybe-name))
+              (symbol (node-content maybe-ns)))]
     (with-meta sym
       {*symbol-key* (:id x)})))
 
 (defmethod convert* :keyword [x]
-  (let [[colon maybe-ns _ maybe-name] (p/node-content* x)]
+  (let [[colon maybe-ns _ maybe-name] (node-content* x)]
     (cond maybe-name
-          #_=> (keyword (p/node-content maybe-ns) (p/node-content maybe-name))
+          #_=> (keyword (node-content maybe-ns) (node-content maybe-name))
           (= colon "::")
-          #_=> (keyword (name (ns-name *ns*)) (p/node-content maybe-ns))
-          :else (keyword (p/node-content maybe-ns)))))
+          #_=> (keyword (name (ns-name *ns*)) (node-content maybe-ns))
+          :else (keyword (node-content maybe-ns)))))
 
 (defmethod convert* :number [x]
-  (read-string (p/node-content x)))
+  (read-string (node-content x)))
 
 (defmethod convert* :char [x]
-  (read-string (p/node-content x)))
+  (read-string (node-content x)))
 
 (defmethod convert* :string [x]
-  (read-string (apply str (p/node-content* x))))
+  (read-string (apply str (node-content* x))))
 
 (defmethod convert* :regex [x]
-  (let [[_ _ s _] (p/node-content* x)]
+  (let [[_ _ s _] (node-content* x)]
     (re-pattern s)))
 
 (defmethod convert* :fn [x])
@@ -73,7 +82,7 @@
 (defmethod convert* :var [x]
   (let [[_ maybe-ns _ maybe-name] (essential-content x)
         sym (if maybe-name
-              (symbol (convert* maybe-ns) (p/node-content maybe-name))
+              (symbol (convert* maybe-ns) (node-content maybe-name))
               (symbol (convert* maybe-ns)))]
     (list 'var sym)))
 
