@@ -1,6 +1,8 @@
 (ns symbol-analyzer.conversion
-  (:require [net.cgrand.sjacket.parser :as p])
-  (:import net.cgrand.parsley.Node))
+  (:require [net.cgrand.sjacket.parser :as p]
+            [clojure.core.match :refer [match]])
+  (:import net.cgrand.parsley.Node
+           [clojure.lang RT Namespace Var IObj]))
 
 (defn- node-tag [node]
   (:tag node))
@@ -95,6 +97,73 @@
 
 (defmethod convert* :quote [x]
   (wrap 'quote x))
+
+(def ^:private ^:dynamic gensym-env)
+
+(declare convert-syntax-quote)
+
+(defn- expand-list [s]
+  (letfn [(expand [x]
+            (match x
+              (['clojure.core/unquote x'] :seq)
+              #_=> (list 'clojure.core/list x')
+              (['clojure.core/unquote-splicing x'] :seq)
+              #_=> x'
+              :else (list 'clojure.core/list (convert-syntax-quote x))))]
+    (map expand s)))
+
+(defn- flatten-map [m]
+  (apply concat m))
+
+(defn- register-gensym [sym]
+  (when-not gensym-env
+    (throw (IllegalStateException. "Gensym literal not in syntax-quote")))
+  (or (get gensym-env sym)
+      (let [gs (symbol (str (subs (name sym) 0 (dec (count (name sym))))
+                            "__" (RT/nextID) "__auto__"))]
+        (set! gensym-env (assoc gensym-env sym gs))
+        gs)))
+
+(defn- resolve-symbol [sym]
+  (if (pos? (.indexOf (name sym) "."))
+    sym
+    (if-let [ns-str (namespace sym)]
+      (throw (UnsupportedOperationException. "not implemented"))
+      (if-let [o ((ns-map *conv-ns*) sym)]
+        (cond (class? o) (symbol (.getName ^Class o))
+              (var? o) (symbol (-> ^Var o .ns .name name) (-> ^Var o .sym name)))
+        (symbol (name (ns-name *ns*)) (name sym))))))
+
+(defn- add-meta [form ret]
+  (if (and (instance? IObj form)
+           (dissoc (meta form) :line :column))
+    (list 'clojure.core/with-meta ret (convert-syntax-quote (meta form)))
+    ret))
+
+(defn- syntax-quote-coll [type coll]
+  (let [res (list 'clojure.core/sequence (cons 'clojure.core/concat (expand-list coll)))]
+    (if type
+      (list 'clojure.core/apply type res)
+      res)))
+
+(defn- convert-symbol-in-syntax-quote [sym]
+  (->> (if (namespace sym)
+         (let [maybe-class ((ns-map *conv-ns*) (symbol (namespace sym)))]
+           (if (class? maybe-class)
+             (symbol (.getName ^Class maybe-class) (name sym))
+             (resolve-symbol sym)))
+         (let [name (name sym)]
+           (cond (.endsWith name "#")
+                 #_=> (register-gensym sym)
+                 (.startsWith name ".")
+                 #_=> sym
+                 (.endsWith name ".")
+                 #_=> (let [csym (symbol (subs name 0 (dec (count name))))]
+                        (symbol (str (resolve-symbol csym) ".")))
+                 :else (resolve-symbol sym))))
+      (list 'quote)))
+
+(defn- convert-syntax-quote [x])
 
 (defmethod convert* :syntax-quote [x])
 
