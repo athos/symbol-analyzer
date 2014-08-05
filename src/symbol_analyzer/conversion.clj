@@ -104,15 +104,20 @@
 
 (declare convert-syntax-quote)
 
+(defn- unquote? [x]
+  (and (seq? x) (= (first x) 'clojure.core/unquote)))
+
+(defn- unquote-splicing? [x]
+  (and (seq? x) (= (first x) 'clojure.core/unquote-splicing)))
+
 (defn- expand-list [s]
   (letfn [(expand [x]
-            (match x
-              (['clojure.core/unquote x'] :seq)
-              #_=> (list 'clojure.core/list x')
-              (['clojure.core/unquote-splicing x'] :seq)
-              #_=> x'
-              :else (list 'clojure.core/list (convert-syntax-quote x))))]
     (map expand s)))
+            (cond (unquote? x)
+                  #_=> (list 'clojure.core/list (second x))
+                  (unquote-splicing? x)
+                  #_=> (second x)
+                  :else (list 'clojure.core/list (convert-syntax-quote x))))]
 
 (defn- flatten-map [m]
   (apply concat m))
