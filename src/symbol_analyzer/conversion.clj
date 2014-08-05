@@ -143,7 +143,7 @@
 
 (defn- add-meta [form ret]
   (if (and (instance? IObj form)
-           (dissoc (meta form) :line :column))
+           (dissoc (meta form) :line :column *symbol-key*))
     (list 'clojure.core/with-meta ret (convert-syntax-quote (meta form)))
     ret))
 
