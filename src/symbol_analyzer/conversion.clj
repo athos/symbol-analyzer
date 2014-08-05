@@ -2,7 +2,7 @@
   (:require [net.cgrand.sjacket.parser :as p]
             [clojure.core.match :refer [match]])
   (:import net.cgrand.parsley.Node
-           [clojure.lang RT Namespace Var IObj]))
+           [clojure.lang RT Namespace Var IObj IRecord]))
 
 (defn- node-tag [node]
   (:tag node))
@@ -170,9 +170,35 @@
                  :else (resolve-symbol sym))))
       (list 'quote)))
 
-(defn- convert-syntax-quote [x])
+(defn- convert-coll-in-syntax-quote [coll]
+  (cond (instance? IRecord coll) coll
+        (map? coll) (syntax-quote-coll 'clojure.core/hash-map (flatten-map coll))
+        (vector? coll) (syntax-quote-coll 'clojure.core/vector coll)
+        (set? coll) (syntax-quote-coll 'clojure.core/hash-set coll)
+        (or (seq? coll) (list? coll))
+        #_=> (if-let [seq (seq coll)]
+               (syntax-quote-coll nil seq)
+               '(clojure.core/list))
+        :else (throw (UnsupportedOperationException. "Unknown Collection type"))))
 
-(defmethod convert* :syntax-quote [x])
+(defn- convert-syntax-quote [x]
+  (->> (condp #(%1 %2) x
+         special-symbol? (list 'quote x)
+         symbol? (convert-symbol-in-syntax-quote x)
+         unquote? (second x)
+         unquote-splicing? (throw (IllegalStateException. "splice not in list"))
+         coll? (convert-coll-in-syntax-quote x)
+         keyword? x
+         number? x
+         char? x
+         string? x
+         (list 'quote x))
+       (add-meta x)))
+
+(defmethod convert* :syntax-quote [x]
+  (binding [gensym-env {}]
+    (let [[_ x'] (essential-content x)]
+      (convert-syntax-quote (convert* x')))))
 
 (defmethod convert* :unquote [x]
   (wrap 'clojure.core/unquote x))
