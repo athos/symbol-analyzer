@@ -43,8 +43,10 @@
         sym (if maybe-name
               (symbol (node-content maybe-ns) (node-content maybe-name))
               (symbol (node-content maybe-ns)))]
-    (with-meta sym
-      {*symbol-key* (:id x)})))
+    (if-let [id (get x *symbol-key*)]
+      (with-meta sym
+        {*symbol-key* id})
+      sym)))
 
 (defmethod convert* :keyword [x]
   (let [[colon maybe-ns _ maybe-name] (node-content* x)]
