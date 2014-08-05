@@ -112,15 +112,15 @@
 
 (defn- expand-list [s]
   (letfn [(expand [x]
-    (map expand s)))
             (cond (unquote? x)
                   #_=> (list 'clojure.core/list (second x))
                   (unquote-splicing? x)
                   #_=> (second x)
                   :else (list 'clojure.core/list (convert-syntax-quote x))))]
+    (doall (map expand s))))
 
 (defn- flatten-map [m]
-  (apply concat m))
+  (doall (apply concat m)))
 
 (defn- register-gensym [sym]
   (when-not gensym-env
