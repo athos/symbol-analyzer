@@ -73,7 +73,7 @@
   (is (parse-and-convert=read-string "`if"))
   (is (parse-and-convert=read-string "`cons"))
   (is (parse-and-convert=read-string "`x"))
-  #_(is (parse-and-convert=read-string "`clojure.core/cons"))
+  (is (parse-and-convert=read-string "`clojure.core/cons"))
   (is (match (first (convert (p/parser "(`(x# x#) `x#)")))
         ([(['clojure.core/seq
             (['clojure.core/concat

@@ -48,6 +48,10 @@
         {*symbol-key* id})
       sym)))
 
+(defn- resolve-ns [sym]
+  (or ((ns-aliases *conv-ns*) sym)
+      (find-ns sym)))
+
 (defmethod convert* :keyword [x]
   (let [[colon maybe-ns _ maybe-name] (node-content* x)]
     (cond maybe-name
@@ -138,7 +142,10 @@
   (if (pos? (.indexOf (name sym) "."))
     sym
     (if-let [ns-str (namespace sym)]
-      (throw (UnsupportedOperationException. "not implemented"))
+      (let [^Namespace ns (resolve-ns (symbol ns-str))]
+        (if (or (nil? ns) (= (name (ns-name ns)) ns-str))
+          sym
+          (symbol (name (.name ns)) (name sym))))
       (if-let [o ((ns-map *conv-ns*) sym)]
         (cond (class? o) (symbol (.getName ^Class o))
               (var? o) (symbol (-> ^Var o .ns .name name) (-> ^Var o .sym name)))
