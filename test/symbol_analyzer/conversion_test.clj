@@ -94,9 +94,9 @@
   (is (parse-and-convert=read-string "`(x ~'y z)"))
   (is (parse-and-convert=read-string "`(x ~@y z)"))
   (is (parse-and-convert=read-string "`(x ~@[] z)"))
-  #_(is (parse-and-convert=read-string "``x"))
-  #_(is (parse-and-convert=read-string "``(~x ~~y z)"))
-  #_(is (parse-and-convert=read-string "``(~x ~~@y z)")))
+  (is (parse-and-convert=read-string "``x"))
+  (is (parse-and-convert=read-string "``(~x ~~y z)"))
+  (is (parse-and-convert=read-string "``(~x ~~@y z)")))
 
 (deftest convert-to-unquote
   (is (parse-and-convert=read-string "~foo")))
