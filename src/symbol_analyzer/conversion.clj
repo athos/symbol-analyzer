@@ -80,8 +80,11 @@
                    #_=> {:tag meta}
                    (map? meta) meta
                    ; FIXME: otherwise throw an exception
-                   )]
-    (vary-meta (convert* form-node) conj meta)))
+                   )
+        form (convert* form-node)]
+    (if (meta form)
+      (vary-meta form conj meta)
+      (with-meta form meta))))
 
 (defmethod convert* :var [x]
   (let [[_ maybe-ns _ maybe-name] (essential-content x)
