@@ -1,7 +1,8 @@
 (ns symbol-analyzer.conversion-test
   (:require [symbol-analyzer.conversion :refer :all]
             [net.cgrand.sjacket.parser :as p]
-            [clojure.test :refer :all]))
+            [clojure.test :refer :all]
+            [clojure.core.match :refer [match]]))
 
 (defn- parse-and-convert=read-string [code]
   (= (first (convert (p/parser code)))
@@ -67,7 +68,35 @@
   (is (parse-and-convert=read-string "'foo"))
   (is (parse-and-convert=read-string "'(1 2 3)")))
 
-(deftest convert-to-syntax-quote)
+(deftest convert-to-syntax-quote
+  (is (parse-and-convert=read-string "`1"))
+  (is (parse-and-convert=read-string "`if"))
+  (is (parse-and-convert=read-string "`cons"))
+  (is (parse-and-convert=read-string "`x"))
+  #_(is (parse-and-convert=read-string "`clojure.core/cons"))
+  (is (match (first (convert (p/parser "(`(x# x#) `x#)")))
+        ([(['clojure.core/seq
+            (['clojure.core/concat
+              (['clojure.core/list (['quote (x1 :guard symbol?)] :seq)] :seq)
+              (['clojure.core/list (['quote (x2 :guard symbol?)] :seq)] :seq)] :seq)] :seq)
+          (['quote (x3 :guard symbol?)] :seq)] :seq)
+        #_=> (and (= x1 x2) (not= x1 x3))
+        :else false))
+  (is (parse-and-convert=read-string "`Class"))
+  (is (parse-and-convert=read-string "`java.lang.Class"))
+  (is (parse-and-convert=read-string "`.member"))
+  (is (parse-and-convert=read-string "`Class."))
+  (is (parse-and-convert=read-string "`(x (y) z)"))
+  (is (parse-and-convert=read-string "`[x [y] z]"))
+  (is (parse-and-convert=read-string "`{x {y z} v w}"))
+  (is (parse-and-convert=read-string "`#{x #{y} z}"))
+  (is (parse-and-convert=read-string "`(x ~y z)"))
+  (is (parse-and-convert=read-string "`(x ~'y z)"))
+  (is (parse-and-convert=read-string "`(x ~@y z)"))
+  (is (parse-and-convert=read-string "`(x ~@[] z)"))
+  #_(is (parse-and-convert=read-string "``x"))
+  #_(is (parse-and-convert=read-string "``(~x ~~y z)"))
+  #_(is (parse-and-convert=read-string "``(~x ~~@y z)")))
 
 (deftest convert-to-unquote
   (is (parse-and-convert=read-string "~foo")))
