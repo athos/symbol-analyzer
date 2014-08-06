@@ -4,6 +4,8 @@
             [symbol-analyzer.extraction :refer [extract]])
   (:import net.cgrand.parsley.Node))
 
+(def ^:private ^:dynamic *symbol-id-key*)
+
 (def ^:private new-id
   (let [n (atom 0)]
     (fn []
@@ -18,13 +20,14 @@
 (defn- mark-sexp [sexp]
   (-> (fn [t]
         (if (symbol? t)
-          (add-meta t {:id (new-id)})
+          (add-meta t {*symbol-id-key* (new-id)})
           t))
       (postwalk sexp)))
 
 (defn- annotate-sexp [sexp info]
   (-> (fn [t]
-        (if-let [usage (and (symbol? t) (info (:id (meta t))))]
+        (if-let [usage (and (symbol? t)
+                            (info (get (meta t) *symbol-id-key*)))]
           (add-meta t {:usage usage})
           t))
       (postwalk sexp)))
@@ -39,13 +42,14 @@
 (defn- mark [node]
   (-> (fn [node]
         (if (= (:tag node) :symbol)
-          (assoc node :id (new-id))
+          (assoc node *symbol-id-key* (new-id))
           node))
       (postwalk-nodes node)))
 
 (defn- annotate [node info]
   (-> (fn [node]
-        (if-let [usage (and (= (:tag node) :symbol) (info (:id node)))]
+        (if-let [usage (and (= (:tag node) :symbol)
+                            (info (get node *symbol-id-key*)))]
           (assoc node :usage usage)
           node))
       (postwalk-nodes node)))
@@ -54,20 +58,22 @@
 ;; Entry points
 ;;
 
-(defn analyze-sexp [sexp & {:keys [ns]}]
-  (let [ns (or ns *ns*)
-        sexp (mark-sexp sexp)
-        info (extract sexp :ns ns :symbol-key :id)]
-    (annotate-sexp sexp info)))
+(defn analyze-sexp [sexp & {:keys [ns symbol-id-key]}]
+  (binding [*symbol-id-key* (or symbol-id-key :id)]
+    (let [ns (or ns *ns*)
+          sexp (mark-sexp sexp)
+          info (extract sexp :ns ns :symbol-key symbol-id-key)]
+      (annotate-sexp sexp info))))
 
-(defn analyze [root & {:keys [ns suppress-eval?]}]
-  (let [ns (or ns *ns*)
-        root (mark root)
-        sexps (convert root :ns ns :symbol-key :id)
-        ext (fn [info sexp]
-              (when-not suppress-eval?
-                (binding [*ns* ns]
-                  (eval sexp)))
-              (merge info (extract sexp :ns ns :symbol-key :id)))
-        info (reduce ext {} sexps)]
-    (annotate root info)))
+(defn analyze [root & {:keys [ns symbol-id-key suppress-eval?]}]
+  (binding [*symbol-id-key* (or symbol-id-key :id)]
+    (let [ns (or ns *ns*)
+          root (mark root)
+          sexps (convert root :ns ns :symbol-key symbol-id-key)
+          ext (fn [info sexp]
+                (when-not suppress-eval?
+                  (binding [*ns* ns]
+                    (eval sexp)))
+                (merge info (extract sexp :ns ns :symbol-key symbol-id-key)))
+          info (reduce ext {} sexps)]
+      (annotate root info))))
