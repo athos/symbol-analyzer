@@ -16,9 +16,6 @@
 (def ^:private ^:dynamic *conv-ns*)
 (def ^:private ^:dynamic *symbol-key*)
 
-(defn get-id [x]
-  (get (meta x) *symbol-key*))
-
 (defn- remove-whitespaces [content]
   (filterv #(or (not (instance? Node %))
                 (not (#{:whitespace :newline :comment :discard} (node-tag %))))
