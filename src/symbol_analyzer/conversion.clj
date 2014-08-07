@@ -5,6 +5,10 @@
   (:import net.cgrand.parsley.Node
            [clojure.lang RT Namespace Var IObj IRecord]))
 
+;;
+;; Node manipulation
+;;
+
 (defn- node-tag [node]
   (:tag node))
 
@@ -14,9 +18,6 @@
 (defn- node-content [node]
   (first (node-content* node)))
 
-(def ^:private ^:dynamic *conv-ns*)
-(def ^:private ^:dynamic *symbol-key*)
-
 (defn- remove-whitespaces [content]
   (filterv #(or (not (instance? Node %))
                 (not (#{:whitespace :newline :comment :discard} (node-tag %))))
@@ -24,6 +25,13 @@
 
 (defn- essential-content [x]
   (remove-whitespaces (node-content* x)))
+
+;;
+;; Conversion
+;;
+
+(def ^:private ^:dynamic *conv-ns*)
+(def ^:private ^:dynamic *symbol-key*)
 
 (defmulti ^:private convert* node-tag)
 
