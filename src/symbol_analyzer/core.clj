@@ -1,7 +1,8 @@
 (ns symbol-analyzer.core
   (:require [clojure.walk :refer [postwalk]]
             [symbol-analyzer.conversion :refer [convert]]
-            [symbol-analyzer.extraction :refer [extract]])
+            [symbol-analyzer.extraction :refer [extract]]
+            [symbol-analyzer.utils :as utils])
   (:import net.cgrand.parsley.Node))
 
 (def ^:private ^:dynamic *symbol-id-key*)
@@ -13,15 +14,10 @@
       (swap! n inc)
       @n)))
 
-(defn- add-meta [x m]
-  (if (meta x)
-    (vary-meta x conj m)
-    (with-meta x m)))
-
 (defn- mark-sexp [sexp]
   (-> (fn [t]
         (if (symbol? t)
-          (add-meta t {*symbol-id-key* (new-id)})
+          (utils/add-meta t {*symbol-id-key* (new-id)})
           t))
       (postwalk sexp)))
 
@@ -29,7 +25,7 @@
   (-> (fn [t]
         (if-let [usage (and (symbol? t)
                             (info (get (meta t) *symbol-id-key*)))]
-          (add-meta t {*symbol-info-key* usage})
+          (utils/add-meta t {*symbol-info-key* usage})
           t))
       (postwalk sexp)))
 

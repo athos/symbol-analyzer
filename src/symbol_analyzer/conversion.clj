@@ -1,6 +1,7 @@
 (ns symbol-analyzer.conversion
   (:require [net.cgrand.sjacket.parser :as p]
-            [clojure.core.match :refer [match]])
+            [clojure.core.match :refer [match]]
+            [symbol-analyzer.utils :as utils])
   (:import net.cgrand.parsley.Node
            [clojure.lang RT Namespace Var IObj IRecord]))
 
@@ -83,9 +84,7 @@
                    ; FIXME: otherwise throw an exception
                    )
         form (convert* form-node)]
-    (if (meta form)
-      (vary-meta form conj meta)
-      (with-meta form meta))))
+    (utils/add-meta form meta)))
 
 (defmethod convert* :var [x]
   (let [[_ maybe-ns _ maybe-name] (essential-content x)
