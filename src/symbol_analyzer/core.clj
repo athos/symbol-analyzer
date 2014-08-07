@@ -47,7 +47,7 @@
   (-> (fn [node]
         (if-let [usage (and (= (:tag node) :symbol)
                             (info (get node *symbol-id-key*)))]
-          (assoc node :symbol-info-key usage)
+          (assoc node *symbol-info-key* usage)
           node))
       (postwalk-nodes node)))
 
