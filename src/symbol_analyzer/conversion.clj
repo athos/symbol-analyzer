@@ -246,9 +246,10 @@
 (defmethod convert* :set [x]
   (set (convert-seq x)))
 
-(defn convert [root & {:keys [ns symbol-key]}]
-  (binding [*conv-ns* (the-ns (or ns *ns*))
-            *symbol-key* (or symbol-key :id)]
+(defn convert [root & {:keys [ns symbol-key]
+                       :or {ns *ns*, symbol-key :id}}]
+  (binding [*conv-ns* (the-ns ns)
+            *symbol-key* symbol-key]
     (convert* root)))
 
 (defn- convert-seq [x]
