@@ -18,7 +18,7 @@
       (ns-resolve (:ns env) n)))
 
 (defn- extend [env n]
-  (assoc-in env [:locals n] (if-let [id (get-id n)] id :unmarked)))
+  (assoc-in env [:locals n] (if-let [id (get-id n)] id :none)))
 
 (defn- extend-with-seq [env seq]
   (reduce extend env seq))
@@ -93,9 +93,11 @@
         #_=> (extract-from-forms env form)
         :else {}))
 
-(defn extract [form & {:keys [ns locals symbol-key]}]
-  (binding [*symbol-key* (or symbol-key :id)]
-    (extract* (make-env (or ns *ns*) (or locals {})) form)))
+(defn extract [form & {:keys [ns locals symbol-key]
+                       :or {ns *ns*, locals nil, symbol-key :id}}]
+  (binding [*symbol-key* symbol-key]
+    (let [locals (into {} (for [name locals] [name :user-specified]))]
+      (extract* (make-env ns locals) form))))
 
 ;;
 ;; Implementation of etraction methods

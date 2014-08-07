@@ -1,8 +1,20 @@
 (ns symbol-analyzer.conversion
   (:require [net.cgrand.sjacket.parser :as p]
-            [clojure.core.match :refer [match]])
+            [clojure.core.match :refer [match]]
+            [symbol-analyzer.utils :as utils])
   (:import net.cgrand.parsley.Node
            [clojure.lang RT Namespace Var IObj IRecord]))
+
+;;
+;; Utilities
+;;
+
+(defn- copy-meta [x y]
+  (utils/add-meta y (meta x)))
+
+;;
+;; Node manipulation
+;;
 
 (defn- node-tag [node]
   (:tag node))
@@ -13,9 +25,6 @@
 (defn- node-content [node]
   (first (node-content* node)))
 
-(def ^:private ^:dynamic *conv-ns*)
-(def ^:private ^:dynamic *symbol-key*)
-
 (defn- remove-whitespaces [content]
   (filterv #(or (not (instance? Node %))
                 (not (#{:whitespace :newline :comment :discard} (node-tag %))))
@@ -23,6 +32,13 @@
 
 (defn- essential-content [x]
   (remove-whitespaces (node-content* x)))
+
+;;
+;; Conversion
+;;
+
+(def ^:private ^:dynamic *conv-ns*)
+(def ^:private ^:dynamic *symbol-key*)
 
 (defmulti ^:private convert* node-tag)
 
@@ -83,9 +99,7 @@
                    ; FIXME: otherwise throw an exception
                    )
         form (convert* form-node)]
-    (if (meta form)
-      (vary-meta form conj meta)
-      (with-meta form meta))))
+    (utils/add-meta form meta)))
 
 (defmethod convert* :var [x]
   (let [[_ maybe-ns _ maybe-name] (essential-content x)
@@ -148,7 +162,7 @@
               (var? o) (symbol (-> ^Var o .ns .name name) (-> ^Var o .sym name)))
         (symbol (name (ns-name *ns*)) (name sym))))))
 
-(defn- add-meta [form ret]
+(defn- wrap-with-meta [form ret]
   (if (and (instance? IObj form)
            (dissoc (meta form) :line :column *symbol-key*))
     (list 'clojure.core/with-meta ret (convert-syntax-quote (meta form)))
@@ -175,6 +189,7 @@
                  #_=> (let [csym (symbol (subs name 0 (dec (count name))))]
                         (symbol (str (resolve-symbol csym) ".")))
                  :else (resolve-symbol sym))))
+      (copy-meta sym)
       (list 'quote)))
 
 (defn- convert-coll-in-syntax-quote [coll]
@@ -200,7 +215,7 @@
          char? x
          string? x
          (list 'quote x))
-       (add-meta x)))
+       (wrap-with-meta x)))
 
 (defmethod convert* :syntax-quote [x]
   (binding [gensym-env {}]
@@ -231,9 +246,10 @@
 (defmethod convert* :set [x]
   (set (convert-seq x)))
 
-(defn convert [root & {:keys [ns symbol-key]}]
-  (binding [*conv-ns* (the-ns (or ns *ns*))
-            *symbol-key* (or symbol-key :id)]
+(defn convert [root & {:keys [ns symbol-key]
+                       :or {ns *ns*, symbol-key :id}}]
+  (binding [*conv-ns* (the-ns ns)
+            *symbol-key* symbol-key]
     (convert* root)))
 
 (defn- convert-seq [x]
