@@ -55,13 +55,13 @@
 ;; Entry points
 ;;
 
-(defn analyze-sexp [sexp & {:keys [ns symbol-id-key symbol-info-key]
-                            :or {ns *ns*, symbol-id-key :id,
+(defn analyze-sexp [sexp & {:keys [ns locals symbol-id-key symbol-info-key]
+                            :or {ns *ns*, locals nil, symbol-id-key :id,
                                  symbol-info-key :symbol-info}}]
   (binding [*symbol-id-key* symbol-id-key
             *symbol-info-key* symbol-info-key]
     (let [sexp (mark-sexp sexp)
-          info (extract sexp :ns ns :symbol-key symbol-id-key)]
+          info (extract sexp :ns ns :locals locals :symbol-key symbol-id-key)]
       (annotate-sexp sexp info))))
 
 (defn analyze [root & {:keys [ns symbol-id-key symbol-info-key suppress-eval?]

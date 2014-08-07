@@ -94,9 +94,10 @@
         :else {}))
 
 (defn extract [form & {:keys [ns locals symbol-key]
-                       :or {ns *ns*, locals {}, symbol-key :id}}]
+                       :or {ns *ns*, locals nil, symbol-key :id}}]
   (binding [*symbol-key* symbol-key]
-    (extract* (make-env ns locals) form)))
+    (let [locals (into {} (for [name locals] [name :user-specified]))]
+      (extract* (make-env ns locals) form))))
 
 ;;
 ;; Implementation of etraction methods
