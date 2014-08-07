@@ -148,7 +148,7 @@
               (var? o) (symbol (-> ^Var o .ns .name name) (-> ^Var o .sym name)))
         (symbol (name (ns-name *ns*)) (name sym))))))
 
-(defn- add-meta [form ret]
+(defn- wrap-with-meta [form ret]
   (if (and (instance? IObj form)
            (dissoc (meta form) :line :column *symbol-key*))
     (list 'clojure.core/with-meta ret (convert-syntax-quote (meta form)))
@@ -200,7 +200,7 @@
          char? x
          string? x
          (list 'quote x))
-       (add-meta x)))
+       (wrap-with-meta x)))
 
 (defmethod convert* :syntax-quote [x]
   (binding [gensym-env {}]
