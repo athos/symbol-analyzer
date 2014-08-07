@@ -18,7 +18,7 @@
       (ns-resolve (:ns env) n)))
 
 (defn- extend [env n]
-  (assoc-in env [:locals n] (if-let [id (get-id n)] id :unmarked)))
+  (assoc-in env [:locals n] (if-let [id (get-id n)] id :none)))
 
 (defn- extend-with-seq [env seq]
   (reduce extend env seq))
