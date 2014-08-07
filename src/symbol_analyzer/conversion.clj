@@ -6,6 +6,13 @@
            [clojure.lang RT Namespace Var IObj IRecord]))
 
 ;;
+;; Utilities
+;;
+
+(defn- copy-meta [x y]
+  (utils/add-meta y (meta x)))
+
+;;
 ;; Node manipulation
 ;;
 
@@ -182,6 +189,7 @@
                  #_=> (let [csym (symbol (subs name 0 (dec (count name))))]
                         (symbol (str (resolve-symbol csym) ".")))
                  :else (resolve-symbol sym))))
+      (copy-meta sym)
       (list 'quote)))
 
 (defn- convert-coll-in-syntax-quote [coll]
