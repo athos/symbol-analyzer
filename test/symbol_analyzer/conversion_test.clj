@@ -8,6 +8,12 @@
   (= (first (convert (p/parser code)))
      (read-string code)))
 
+(defmacro parse-and-convert-matches-pattern [code pattern & conditions]
+  `(match (first (convert (p/parser ~code)))
+     ~pattern
+     (and ~@conditions)
+     :else false))
+
 (deftest convert-to-nil
   (is (parse-and-convert=read-string "nil")))
 
@@ -74,14 +80,13 @@
   (is (parse-and-convert=read-string "`cons"))
   (is (parse-and-convert=read-string "`x"))
   (is (parse-and-convert=read-string "`clojure.core/cons"))
-  (is (match (first (convert (p/parser "(`(x# x#) `x#)")))
+  (is (parse-and-convert-matches-pattern "(`(x# x#) `x#)"
         ([(['clojure.core/seq
             (['clojure.core/concat
               (['clojure.core/list (['quote (x1 :guard symbol?)] :seq)] :seq)
               (['clojure.core/list (['quote (x2 :guard symbol?)] :seq)] :seq)] :seq)] :seq)
           (['quote (x3 :guard symbol?)] :seq)] :seq)
-        #_=> (and (= x1 x2) (not= x1 x3))
-        :else false))
+        (and (= x1 x2) (not= x1 x3))))
   (is (parse-and-convert=read-string "`Class"))
   (is (parse-and-convert=read-string "`java.lang.Class"))
   (is (parse-and-convert=read-string "`.member"))
