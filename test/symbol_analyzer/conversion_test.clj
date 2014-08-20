@@ -8,6 +8,12 @@
   (= (first (convert (p/parser code)))
      (read-string code)))
 
+(defmacro parse-and-convert-matches-pattern [code pattern & conditions]
+  `(match (first (convert (p/parser ~code)))
+     ~pattern
+     (and ~@conditions)
+     :else false))
+
 (deftest convert-to-nil
   (is (parse-and-convert=read-string "nil")))
 
@@ -49,7 +55,17 @@
   (is (str (first (convert (p/parser "#\"\\[\\]?(\\\")\\\\\""))))
       (str (read-string "#\"\\[\\]?(\\\")\\\\\""))))
 
-(deftest convert-to-fn)
+(deftest convert-to-fn
+  (is (parse-and-convert-matches-pattern "#(apply % %1 %3 %&)"
+        (['fn* [p1 p2 p3 '& p&] (['apply x x1 x3 x&] :seq)] :seq)
+        (and (= p1 x x1) (= p3 x3) (= p& x&)
+             (not= p1 p2) (not= p3 p2) (not= p& p2))))
+  (is (parse-and-convert-matches-pattern "#(quote %)"
+        (['fn* [p] (['quote x] :seq)] :seq)
+        (= p x)))
+  (is (parse-and-convert-matches-pattern "#(let [% 0] %)"
+        (['fn* [p] (['let [x 0] x'] :seq)] :seq)
+        (= p x x'))))
 
 (deftest convert-to-meta
   (is (parse-and-convert=read-string "^:key foo-bar"))
@@ -74,14 +90,13 @@
   (is (parse-and-convert=read-string "`cons"))
   (is (parse-and-convert=read-string "`x"))
   (is (parse-and-convert=read-string "`clojure.core/cons"))
-  (is (match (first (convert (p/parser "(`(x# x#) `x#)")))
+  (is (parse-and-convert-matches-pattern "(`(x# x#) `x#)"
         ([(['clojure.core/seq
             (['clojure.core/concat
               (['clojure.core/list (['quote (x1 :guard symbol?)] :seq)] :seq)
               (['clojure.core/list (['quote (x2 :guard symbol?)] :seq)] :seq)] :seq)] :seq)
           (['quote (x3 :guard symbol?)] :seq)] :seq)
-        #_=> (and (= x1 x2) (not= x1 x3))
-        :else false))
+        (and (= x1 x2) (not= x1 x3))))
   (is (parse-and-convert=read-string "`Class"))
   (is (parse-and-convert=read-string "`java.lang.Class"))
   (is (parse-and-convert=read-string "`.member"))
