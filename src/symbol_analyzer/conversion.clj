@@ -51,11 +51,21 @@
 (defmethod convert* :boolean [x]
   ({"true" true, "false" false} (node-content x)))
 
+(declare register-arg)
+
 (defmethod convert* :symbol [x]
   (let [[maybe-ns _ maybe-name] (node-content* x)
         sym (if maybe-name
               (symbol (node-content maybe-ns) (node-content maybe-name))
-              (symbol (node-content maybe-ns)))]
+              (symbol (node-content maybe-ns)))
+        sym (-> (and (nil? (namespace sym))
+                     (let [[s ^String n] (re-matches #"%([0-9]+|&)?" (name sym))]
+                       (cond (nil? s) nil
+                             (nil? n) 1
+                             (= n "&") -1
+                             :else (Long/parseLong n))))
+                (some-> register-arg)
+                (or sym))]
     (if-let [id (get x *symbol-key*)]
       (with-meta sym
         {*symbol-key* id})
@@ -86,7 +96,36 @@
   (let [[_ _ s _] (node-content* x)]
     (re-pattern s)))
 
-(defmethod convert* :fn [x])
+(def ^:private ^:dynamic arg-env)
+
+(defn- garg [n]
+  (symbol (str (if (== -1 n) "rest" (str "p" n))
+               "__" (RT/nextID) "#")))
+
+(declare convert-seq)
+
+(defmethod convert* :fn [x]
+  (when (thread-bound? #'arg-env)
+    (throw (IllegalStateException. "Nested #()s are not allowed")))
+  (binding [arg-env (sorted-map)]
+    (let [form (doall (convert-seq x))
+          rargs (rseq arg-env)
+          args (if rargs
+                 (let [higharg (inc (key (first rargs)))
+                       args (mapv #(or (get arg-env %) (garg %))
+                                  (range 1 higharg))]
+                   (if (arg-env -1)
+                     (conj args '& (arg-env -1))
+                     args))
+                 [])]
+      (list 'fn* args form))))
+
+(defn- register-arg [n]
+  (when (thread-bound? #'arg-env)
+    (or (arg-env n)
+        (let [g (garg n)]
+          (set! arg-env (assoc arg-env n g))
+          g))))
 
 (defmethod convert* :meta [x]
   (let [[_ meta-node form-node] (essential-content x)
@@ -231,8 +270,6 @@
 (defmethod convert* :eval [x])
 
 (defmethod convert* :reader-literal [x])
-
-(declare convert-seq)
 
 (defmethod convert* :list [x]
   (doall (convert-seq x)))

@@ -55,7 +55,17 @@
   (is (str (first (convert (p/parser "#\"\\[\\]?(\\\")\\\\\""))))
       (str (read-string "#\"\\[\\]?(\\\")\\\\\""))))
 
-(deftest convert-to-fn)
+(deftest convert-to-fn
+  (is (parse-and-convert-matches-pattern "#(apply % %1 %3 %&)"
+        (['fn* [p1 p2 p3 '& p&] (['apply x x1 x3 x&] :seq)] :seq)
+        (and (= p1 x x1) (= p3 x3) (= p& x&)
+             (not= p1 p2) (not= p3 p2) (not= p& p2))))
+  (is (parse-and-convert-matches-pattern "#(quote %)"
+        (['fn* [p] (['quote x] :seq)] :seq)
+        (= p x)))
+  (is (parse-and-convert-matches-pattern "#(let [% 0] %)"
+        (['fn* [p] (['let [x 0] x'] :seq)] :seq)
+        (= p x x'))))
 
 (deftest convert-to-meta
   (is (parse-and-convert=read-string "^:key foo-bar"))
