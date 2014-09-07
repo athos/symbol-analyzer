@@ -1,6 +1,6 @@
 # symbol-analyzer　[![Build Status](https://travis-ci.org/athos/symbol-analyzer.png)](https://travis-ci.org/athos/symbol-analyzer)
 
-`symbol-analyzer` is a code analyzer that analyzes how each symbol is being used in the code. It can be used in various ways such as static analysis for Clojure code or defining complicated macros that require code walk.
+`symbol-analyzer` is a code analyzer that analyzes for you how each symbol is being used in the code. It can be used in various ways such as static analysis for Clojure code or defining complicated macros that require code walk.
 
 ## Installation
 
@@ -9,13 +9,13 @@
 The basic usages of `symbol-analyzer` are *extract* and *analyze*.
 
 
-**Note** `symbol-analyzer` is still alpha quality and its APIs and the format of their return values described below are highly subject to change.
+**Note** `symbol-analyzer` is still of alpha quality and its APIs and the format of their return values described below are highly subject to change.
 
 ### Extract
 
 *Extract* analyzes how the specified symbols in the code are being used and will return the result, which we call *symbol information*. The target symbols to be analyzed are specified by assigning unique IDs as metadata with a specific key. The default key is `:id`.
 
-For example, you can analyze the usage of the second `x` in `(let [x 0] x)` as follows:
+For example, we can analyze the usage of the second `x` in `(let [x 0] x)` as follows:
 
 ```clojure
 user=> (require '[symbol-analyzer.extraction :refer [extract]])
@@ -25,7 +25,7 @@ user=> (extract '(let [x 0] ^{:id 0} x))
 user=>
 ```
 
-In this example, we assigned ID `0` to the second `x` we are targeting. From the result, you can find the symbol assigned ID `0` (i.e. the one we are targeting) to be an reference to an local binding. Similarly, you'll get the following result if you assign IDs to other symbols as well:
+In this example, we assigned ID `0` to the second `x` we are targeting. From the result, we can find the symbol assigned ID `0` (i.e. the one we are targeting) to be an reference to an local binding. Similarly, we'll get the following result if we assign IDs to other symbols as well:
 
 ```clojure
 user=> (extract '(^{:id 0} let [^{:id 1} x 0] ^{:id 2} x))
