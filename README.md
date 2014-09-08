@@ -63,7 +63,7 @@ user=> (analyze-sexp '(let [x 0] x))
 user=>
 ```
 
-アナライズの結果を利用することで、ある種のコードウォーカーを非常に簡単に書けるようになります。たとえば、ローカル変数のみに対して何かしらの処理をしたい場合、通常はローカル環境を自前で管理しつつコードをトラバースしなければならず、その処理を書き上げるには多大な労力が必要です。一方、アナライズを利用すれば、`reduce`や`filter`といった簡単なシーケンス関数や`clojure.walk`を使うだけでそのようなコードウォーカーを実現することができます。以下の例では、`analyze-sexp`を使ってローカル変数を表すシンボルだけをリネームする関数を定義しています。
+Using the analysis results, we can also write certain types of code walkers rather easily. For example, suppose we want to do something to all and only the symbols representing local bindings. In such a case, it is often the case we have to expend a great amount of effort to write up the code handling local environments and traversing the input code by ourselves. With `symbol-analyzer`, on the other hand, we can realize code walkers like that together with simple sequence functions such as `reduce` and `filter` or functions in `clojure.walk`. In the example below, we are defining with `analyze-sexp` a function renaming the symbols representing local bindings:
 
 ```clojure
 user=> (defn rename-locals [sexp]
@@ -79,9 +79,10 @@ user=> (rename-locals '(let [x x] [x 'x]))
 user=>
 ```
 
-入力コードに含まれる、自由変数としての`x`やクオートされたシンボルリテラルとしての`x`はリネームされず、`let`で束縛されたローカル変数の`x`のみが`?x`へリネームされていることを確認して下さい。
+Note that the symbols representing the local `x` bound by `let` get renamed to `?x`, and not the symbols representing `x` as a free variable nor a quoted literal symbol.
 
-`symbol-analyzer`は、S式を入力としてとる`analyze-sexp`の他にも、[Sjacket](https://github.com/cgrand/sjacket)形式でパースされたClojureコードを入力としてとる`analyze`というAPIも提供しています。このインタフェースは、[genuine-highlighter](https://github.com/athos/genuine-highlighter)のようなシンタックスハイライター等、コードをテキストとして解析し、テキストとして書き戻すツールから利用されることを想定しています。
+In addition to `analyze-sexp`, taking an S-expression as input, `symbol-analyzer` also provides another API named `analyze`, which takes as input Clojure code represented as [Sjacket](https://github.com/cgrand/sjacket) nodes. This interface is intended to use for implementing tools analyzing the code and writing it back as text, such as syntax highlighters, etc. (See [genuine-highlighter](https://github.com/athos/genuine-highlighter) for an example of `symbol-analyzer`-backed syntax highlighter).
+
 
 ## License
 
