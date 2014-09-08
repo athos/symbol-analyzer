@@ -4,6 +4,13 @@
 
 ## Installation
 
+Latest stable release is 0.1.0.
+
+Add the following dependency to your `project.clj` file:
+```clojure
+[symbol-analyzer "0.1.0"]
+```
+
 ## Basic Usage
 
 The basic usages of `symbol-analyzer` are *extract* and *analyze*.
