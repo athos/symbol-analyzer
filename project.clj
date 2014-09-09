@@ -6,5 +6,8 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojars.trptcolin/sjacket "0.1.4" :exclusions [[org.clojure/clojure]]]
                  [org.clojure/core.match "0.2.1"]]
-  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.5"]]
-                   :source-paths ["src" "dev"]}})
+  :profiles {:1.5 {:dependencies [[org.clojure/clojure "1.5.1"]]}
+             :dev {:dependencies [[org.clojure/tools.namespace "0.2.5"]]
+                   :source-paths ["dev"]}}
+  :aliases {"all" ["with-profile" "dev:1.5"]}
+  :global-vars {*warn-on-reflection* true})
