@@ -73,7 +73,7 @@
           sexps (convert root :ns ns :symbol-key symbol-id-key)
           ext (fn [info sexp]
                 (when-not suppress-eval?
-                  (binding [*ns* ns]
+                  (binding [*ns* (the-ns ns)]
                     (eval sexp)))
                 (merge info (extract sexp :ns ns :symbol-key symbol-id-key)))
           info (reduce ext {} sexps)]
