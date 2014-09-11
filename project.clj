@@ -10,4 +10,6 @@
              :dev {:dependencies [[org.clojure/tools.namespace "0.2.5"]]
                    :source-paths ["dev"]}}
   :aliases {"all" ["with-profile" "dev:1.5"]}
+  :lein-release {:deploy-via :shell
+                 :shell ["echo" "deploy!"]}
   :global-vars {*warn-on-reflection* true})
