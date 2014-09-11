@@ -1,4 +1,4 @@
-(defproject symbol-analyzer "0.1.0-SNAPSHOT"
+(defproject symbol-analyzer "0.1.0"
   :description "Clojure code analyzer that tells us how each symbol is being used in the code"
   :url "https://github.com/athos/symbol-analyzer"
   :license {:name "Eclipse Public License"
