@@ -16,7 +16,7 @@ Add the following dependency to your `project.clj` file:
 The basic usages of `symbol-analyzer` are *extract* and *analyze*.
 
 
-**Note** `symbol-analyzer` is still of alpha quality and its APIs and the format of their return values described below are highly subject to change.
+**Note** `symbol-analyzer` is still of alpha quality, and its APIs and the format of their return values described below are highly subject to change.
 
 ### Extract
 
@@ -32,7 +32,7 @@ user=> (extract '(let [x 0] ^{:id 0} x))
 user=>
 ```
 
-In this example, we assigned ID `0` to the second `x` we are targeting. From the result, we can find the symbol assigned ID `0` (i.e. the one we are targeting) to be an reference to an local binding. Similarly, we'll get the following result if we assign IDs to other symbols as well:
+In this example, we assign ID `0` to the second `x` we are targeting. From the result, we can find the symbol assigned ID `0` (i.e. the one we are targeting) to be a reference to a local binding. Similarly, we'll get the following result if we assign IDs to other symbols as well:
 
 ```clojure
 user=> (extract '(^{:id 0} let [^{:id 1} x 0] ^{:id 2} x))
@@ -70,7 +70,7 @@ user=> (analyze-sexp '(let [x 0] x))
 user=>
 ```
 
-Using the analysis results, we can also write certain types of code walkers rather easily. For example, suppose we want to do something to all and only the symbols representing local bindings. In such a case, it is often the case we have to expend a great amount of effort to write up the code handling local environments and traversing the input code by ourselves. With `symbol-analyzer`, on the other hand, we can realize code walkers like that together with simple sequence functions such as `reduce` and `filter` or functions in `clojure.walk`. In the example below, we are defining with `analyze-sexp` a function renaming the symbols representing local bindings:
+Using the analysis results, we can also write certain types of code walkers rather easily. For example, suppose we want to do something to all (and only) the symbols representing local bindings. In such a case, it is often the case we have to expend a great amount of effort to write up the code handling local environments and traversing the input code by ourselves. With `symbol-analyzer`, on the other hand, we can realize code walkers like that in combination with simple sequence functions such as `reduce` and `filter` or functions in `clojure.walk`. In the example below, we are defining with `analyze-sexp` a function renaming the symbols representing local bindings:
 
 ```clojure
 user=> (defn rename-locals [sexp]
