@@ -92,6 +92,6 @@ user=>
 
 ## ライセンス
 
-Copyright © 2014 OHTA Shogo
+Copyright © 2014-2015 OHTA Shogo
 
 Distributed under the Eclipse Public License version 1.0.

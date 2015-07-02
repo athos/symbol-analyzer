@@ -93,6 +93,6 @@ In addition to `analyze-sexp`, taking an S-expression as input, `symbol-analyzer
 
 ## License
 
-Copyright © 2014 OHTA Shogo
+Copyright © 2014-2015 OHTA Shogo
 
 Distributed under the Eclipse Public License version 1.0.
