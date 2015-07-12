@@ -131,7 +131,7 @@
 
 (def-special-extractor quote
   [(_ sexp)
-   (assoc-each {} {:type :quote} (collect-symbols [] sexp))])
+   (assoc-each {} {:type :quoted} (collect-symbols [] sexp))])
 
 (def-special-extractor def
   [(_ name expr)
