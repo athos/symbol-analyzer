@@ -87,7 +87,8 @@
   (read-string (node-content x)))
 
 (defmethod convert* :char [x]
-  (read-string (node-content x)))
+  (let [[backslash charname] (node-content* x)]
+    (read-string (str backslash charname))))
 
 (defmethod convert* :string [x]
   (read-string (apply str (node-content* x))))
