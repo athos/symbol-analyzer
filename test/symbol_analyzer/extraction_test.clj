@@ -86,6 +86,9 @@
 
 (deftest extract-from-def-test
   (is (extracted
+        (#$0 def #$1 foo)
+        {0 {:type :special}, 1 {:type :var}}))
+  (is (extracted
         (#$0 def #$1 foo (#$2 inc 0))
         {0 {:type :special}, 1 {:type var}, 2 {:type var}}))
   #_(is (extracted

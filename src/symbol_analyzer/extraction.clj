@@ -134,6 +134,8 @@
    (assoc-each {} {:type :quoted} (collect-symbols [] sexp))])
 
 (def-special-extractor def
+  [(_ name)
+   {name {:type :var :usage :def :name name}}]
   [(_ name expr)
    {name {:type :var :usage :def :name name}}
    (extract* env expr)])
