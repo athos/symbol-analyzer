@@ -69,19 +69,20 @@
 (deftest extract-from-quote-test
   (is (extracted
         '(#$0 foo (#$1 bar))
-        {0 {:type :quote}, 1 {:type :quote}}))
+        {0 {:type :quoted}, 1 {:type :quoted}}))
   (is (extracted
         '(#$0 let [#$1 x 2] (#$2 * #$3 x 3))
-        {0 {:type :quote}, 1 {:type :quote}, 2 {:type :quote}, 3 {:type :quote}}))
+        {0 {:type :quoted}, 1 {:type :quoted},
+         2 {:type :quoted}, 3 {:type :quoted}}))
   (is (extracted
         '[#$0 foo [#$1 bar]]
-        {0 {:type :quote}, 1 {:type :quote}}))
+        {0 {:type :quoted}, 1 {:type :quoted}}))
   (is (extracted
         '{#$0 foo {#$1 bar #$2 baz}}
-        {0 {:type :quote}, 1 {:type :quote}, 2 {:type :quote}}))
+        {0 {:type :quoted}, 1 {:type :quoted}, 2 {:type :quoted}}))
   (is (extracted
         '#{#$0 foo #{#$1 bar}}
-        {0 {:type :quote}, 1 {:type :quote}})))
+        {0 {:type :quoted}, 1 {:type :quoted}})))
 
 (deftest extract-from-def-test
   (is (extracted
@@ -208,15 +209,16 @@
           #$2 foo (#$3 inc 0)
           (#$4 bar #$5 baz) (#$6 dec 0)
           (#$7 * 2 2))
-        {0 {:type :macro}, 1 {:type :quote}, 2 {:type :quote}, 3 {:type :var}
-         4 {:type :quote}, 5 {:type :quote}, 6 {:type :var}, 7 {:type :var}}))
+        {0 {:type :macro}, 1 {:type :quoted}, 2 {:type :quoted},
+         3 {:type :var}, 4 {:type :quoted}, 5 {:type :quoted},
+         6 {:type :var}, 7 {:type :var}}))
   (is (extracted
         (case '[foo bar]
           [#$0 foo #$1 bar] :vector
           {#$2 foo #$3 bar} :map
           #{#$4 foo #$5 bar} :set)
-        {0 {:type :quote}, 1 {:type :quote}, 2 {:type :quote}, 3 {:type :quote}
-         4 {:type :quote}, 5 {:type :quote}})))
+        {0 {:type :quoted}, 1 {:type :quoted}, 2 {:type :quoted},
+         3 {:type :quoted}, 4 {:type :quoted}, 5 {:type :quoted}})))
 
 (deftest extract-from-reify-test
   (is (extracted

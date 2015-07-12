@@ -217,9 +217,9 @@
   (->> (for [[_ [test then]] map]
          (-> (extract* env then)
              (cond-> (symbol? test)
-                     (assoc-if-marked-symbol test {:type :quote})
+                     (assoc-if-marked-symbol test {:type :quoted})
                      (coll? test)
-                     (assoc-each {:type :quote} (collect-symbols [] test)))))
+                     (assoc-each {:type :quoted} (collect-symbols [] test)))))
        (into {})))
 
 (def-special-extractor case*
