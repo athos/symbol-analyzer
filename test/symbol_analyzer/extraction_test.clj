@@ -117,6 +117,14 @@
         (#$0 fn [#$1 x] (#$2 * #$3 x 2))
         {0 {:type :macro}, 1 {:type :local}, 2 {:type :var}, 3 {:type :local}}))
   (is (extracted
+        (fn [#$0 x #$1 & #$2 y] [#$3 x #$4 y])
+        {0 {:type :local}, 1 nil, 2 {:type :local}, 3 {:type :local},
+         4 {:type :local}}))
+  (is (extracted
+        (fn [[#$0 x #$1 & #$2 y]] [#$3 x #$4 y])
+        {0 {:type :local}, 1 nil, 2 {:type :local}, 3 {:type :local},
+         4 {:type :local}}))
+  (is (extracted
         (fn #$0 f [#$1 x] (#$2 f #$3 x))
         {0 {:type :local}, 1 {:type :local}, 2 {:type :local}, 3 {:type :local}}))
   (is (extracted

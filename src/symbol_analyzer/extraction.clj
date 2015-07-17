@@ -165,11 +165,12 @@
 
 (defn- extract-from-args [env args]
   (loop [env env, [name & more :as args] args, ret {}]
-    (if (empty? args)
-      [ret env]
-      (recur (extend env name)
-             more
-             (assoc-if-marked-symbol ret name {:type :local :usage :def})))))
+    (cond (empty? args) [ret env]
+          (= name '&) (recur env more ret)
+          :else (recur (extend env name)
+                       more
+                       (->> {:type :local :usage :def}
+                            (assoc-if-marked-symbol ret name))))))
 
 (defn- extract-from-clauses [env clauses]
   (->> (for [[args & body] clauses
