@@ -23,9 +23,10 @@
 
 (defn- annotate-sexp [sexp info]
   (-> (fn [t]
-        (if-let [usage (and (symbol? t)
-                            (info (get (meta t) *symbol-id-key*)))]
-          (utils/add-meta t {*symbol-info-key* usage})
+        (if (symbol? t)
+          (let [usage (or (info (get (meta t) *symbol-id-key*))
+                          {:type :unknown})]
+            (utils/add-meta t {*symbol-info-key* usage}))
           t))
       (postwalk sexp)))
 
@@ -45,9 +46,10 @@
 
 (defn- annotate [node info]
   (-> (fn [node]
-        (if-let [usage (and (= (:tag node) :symbol)
-                            (info (get node *symbol-id-key*)))]
-          (assoc node *symbol-info-key* usage)
+        (if (= (:tag node) :symbol)
+          (let [usage (or (info (get node *symbol-id-key*))
+                          {:type :unknown})]
+            (assoc node *symbol-info-key* usage))
           node))
       (postwalk-nodes node)))
 
