@@ -73,10 +73,13 @@
             *symbol-info-key* symbol-info-key]
     (let [root (mark root)
           sexps (convert root :ns ns :symbol-key symbol-id-key)
+          loader (.getContextClassLoader (Thread/currentThread))
           ext (fn [info sexp]
                 (when-not suppress-eval?
                   (binding [*ns* (the-ns ns)]
                     (eval sexp)))
-                (merge info (extract sexp :ns ns :symbol-key symbol-id-key)))
+                (with-bindings {clojure.lang.Compiler/LOADER loader}
+                  (merge info
+                         (extract sexp :ns ns :symbol-key symbol-id-key))))
           info (reduce ext {} sexps)]
       (annotate root info))))
