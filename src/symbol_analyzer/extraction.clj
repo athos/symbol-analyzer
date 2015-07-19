@@ -10,12 +10,12 @@
 ;;
 ;; Environment
 ;;
-(defn- make-env [ns locals]
-  {:ns (the-ns ns) :locals locals})
+(defn- make-env [locals]
+  {:locals locals})
 
 (defn- lookup [env n]
   (or ((:locals env) n)
-      (ns-resolve (:ns env) n)))
+      (resolve n)))
 
 (defn- extend [env n]
   (assoc-in env [:locals n] (if-let [id (get-id n)] id :none)))
@@ -101,7 +101,8 @@
                        :or {ns *ns*, locals nil, symbol-key :id}}]
   (binding [*symbol-key* symbol-key]
     (let [locals (into {} (for [name locals] [name :user-specified]))]
-      (extract* (make-env ns locals) form))))
+      (binding [*ns* ns]
+        (doall (extract* (make-env locals) form))))))
 
 ;;
 ;; Implementation of etraction methods
