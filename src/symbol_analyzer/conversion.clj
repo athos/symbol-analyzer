@@ -58,12 +58,12 @@
         sym (if maybe-name
               (symbol (node-content maybe-ns) (node-content maybe-name))
               (symbol (node-content maybe-ns)))
-        sym (-> (and (nil? (namespace sym))
-                     (let [[s ^String n] (re-matches #"%([0-9]+|&)?" (name sym))]
-                       (cond (nil? s) nil
-                             (nil? n) 1
-                             (= n "&") -1
-                             :else (Long/parseLong n))))
+        sym (-> (when-not (namespace sym)
+                  (let [[s ^String n] (re-matches #"%([0-9]+|&)?" (name sym))]
+                    (cond (nil? s) nil
+                          (nil? n) 1
+                          (= n "&") -1
+                          :else (Long/parseLong n))))
                 (some-> register-arg)
                 (or sym))]
     (if-let [id (get x *symbol-key*)]

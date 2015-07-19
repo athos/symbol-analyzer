@@ -65,6 +65,9 @@
         (= p x)))
   (is (parse-and-convert-matches-pattern "#(let [% 0] %)"
         (['fn* [p] (['let [x 0] x'] :seq)] :seq)
+        (= p x x')))
+  (is (parse-and-convert-matches-pattern "#(clojure.core/* % %)"
+        (['fn* [p] (['clojure.core/* x x'] :seq)] :seq)
         (= p x x'))))
 
 (deftest convert-to-meta
