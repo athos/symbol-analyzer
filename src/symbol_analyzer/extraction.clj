@@ -66,21 +66,21 @@
         #_=> (extract-from-special env seq)
         (symbol? maybe-op)
         #_=> (let [e (lookup env maybe-op)]
-               (cond (and (var? e) (:macro (meta e))) ;; op is macro
-                     #_=> (let [expanded (apply @e seq nil (rest seq))]
-                            (assoc-if-marked-symbol (extract* env expanded)
-                                                    maybe-op
-                                                    {:type :macro :macro e}))
-                     (nil? e) ;; op may be .method or Class. or Class/method
-                     #_=> (let [expanded (macroexpand seq)]
-                            ;; FIXME: transform from original interop form
-                            ;; to dot special form using macroexpand is
-                            ;; a little bit kludgy way, and in some corner
-                            ;; cases it shouldn't work
-                            (if (identical? expanded seq)
-                              (extract-from-forms env seq)
-                              (extract* env expanded)))
-                     :else (extract-from-forms env seq)))
+               (if (or (var? e) (nil? e))
+                 ;; op may be a macro or .method or Class. or Class/method
+
+                 ;; FIXME: transform from original interop form to dot
+                 ;; special form using macroexpand is a little bit kludgy
+                 ;; way, and in some corner cases it shouldn't work
+                 (let [expanded (macroexpand seq)]
+                   (cond (= expanded seq)
+                         #_=> (extract-from-forms env seq)
+                         (var? e)
+                         #_=> (-> {}
+                                  (assoc-if-marked-symbol maybe-op {:type :macro :macro e})
+                                  (merge (extract* env expanded)))
+                         :else (extract* env expanded)))
+                 (extract-from-forms env seq)))
         :else (extract-from-forms env seq)))
 
 (defn- extract* [env form]
