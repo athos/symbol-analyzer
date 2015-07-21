@@ -159,6 +159,7 @@
       (recur (extend env name)
              more
              (merge (assoc-if-marked-symbol ret name {:type :local :usage :def})
+                    (extract* env (meta name))
                     (extract* env expr))))))
 
 (def-special-extractor let*

@@ -266,4 +266,10 @@
         {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
   (is (extracted
         (def ^#$0 String x "hoge")
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        (let [^#$0 String x "hoge"] x)
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        (loop [^#$0 String x "hoge"] x)
         {0 {:type :class :class (_ :guard #(= % java.lang.String))}})))
