@@ -272,4 +272,8 @@
         {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
   (is (extracted
         (loop [^#$0 String x "hoge"] x)
-        {0 {:type :class :class (_ :guard #(= % java.lang.String))}})))
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        (fn ^#$0 String [^#$1 String x] x)
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}
+         1 {:type :class :class (_ :guard #(= % java.lang.String))}})))

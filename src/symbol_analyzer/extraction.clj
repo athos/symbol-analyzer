@@ -179,12 +179,15 @@
           :else (recur (extend env name)
                        more
                        (->> {:type :local :usage :def}
-                            (assoc-if-marked-symbol ret name))))))
+                            (assoc-if-marked-symbol ret name)
+                            (merge (extract* env (meta name))))))))
 
 (defn- extract-from-clauses [env clauses]
   (->> (for [[args & body] clauses
              :let [[info env] (extract-from-args env args)]]
-         (merge info (extract-from-forms env body)))
+         (merge info
+                (extract* env (meta args))
+                (extract-from-forms env body)))
        (into {})))
 
 (def-special-extractor fn*
