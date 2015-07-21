@@ -1,6 +1,7 @@
 (ns symbol-analyzer.extraction
   (:refer-clojure :exclude [extend])
-  (:require [clojure.core.match :refer [match]]))
+  (:require [clojure.core.match :refer [match]]
+            [symbol-analyzer.utils :as utils]))
 
 (def ^:private ^:dynamic *symbol-key*)
 
@@ -84,7 +85,11 @@
         :else (extract-from-forms env seq)))
 
 (defn- extract* [env form]
-  (cond (symbol? form)
+  (cond (and (instance? clojure.lang.IObj form)
+             (meta form) (not (::extracted (meta form))))
+        #_=> (merge (extract* env (meta form))
+                    (extract* env (utils/add-meta form {::extracted true})))
+        (symbol? form)
         #_=> (extract-from-symbol env form)
         (seq? form)
         #_=> (extract-from-seq env form)

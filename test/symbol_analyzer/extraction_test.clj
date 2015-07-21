@@ -31,6 +31,14 @@
         #$0 String
         {0 {:type :class :class (_ :guard #(= % java.lang.String))}})))
 
+(deftest extract-from-meta-test
+  (is (extracted
+        ^ #$0 String x
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        ^{:tag #$0 String} x
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}})))
+
 (deftest extract-from-collection-test
   (is (extracted
         [#$0 cons [#$1 cons]]
