@@ -31,14 +31,6 @@
         #$0 String
         {0 {:type :class :class (_ :guard #(= % java.lang.String))}})))
 
-(deftest extract-from-meta-test
-  (is (extracted
-        ^ #$0 String x
-        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
-  (is (extracted
-        ^{:tag #$0 String} x
-        {0 {:type :class :class (_ :guard #(= % java.lang.String))}})))
-
 (deftest extract-from-collection-test
   (is (extracted
         [#$0 cons [#$1 cons]]
@@ -261,3 +253,17 @@
            4 {:type :class}, 5 {:type :member}, 6 {:type :local}, 7 {:type :var}
            8 {:type :local}, 9 {:type :local}, 10 {:type :class}, 11 {:type :member}
            12 {:type :local}, 13 {:type :local}, 14 {:type :local}, 15 {:type :local}})))
+
+(deftest extract-from-meta-test
+  (is (extracted
+        ^ #$0 String x
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        ^{:tag #$0 String} x
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        (def ^#$0 String x)
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        (def ^#$0 String x "hoge")
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}})))

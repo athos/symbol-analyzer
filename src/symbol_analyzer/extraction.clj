@@ -145,10 +145,12 @@
 
 (def-special-extractor def
   [(_ name)
-   {name {:type :var :usage :def :name name}}]
+   {name {:type :var :usage :def :name name}}
+   (extract* env (meta name))]
   [(_ name expr)
    {name {:type :var :usage :def :name name}}
-   (extract* env expr)])
+   (merge (extract* env (meta name))
+          (extract* env expr))])
 
 (defn- extract-from-bindings [env bindings]
   (loop [env env, [[name expr] & more :as bindings] (partition 2 bindings), ret {}]
