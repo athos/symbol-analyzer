@@ -1,6 +1,7 @@
 (ns symbol-analyzer.extraction
   (:refer-clojure :exclude [extend])
-  (:require [clojure.core.match :refer [match]]))
+  (:require [clojure.core.match :refer [match]]
+            [symbol-analyzer.utils :as utils]))
 
 (def ^:private ^:dynamic *symbol-key*)
 
@@ -84,7 +85,11 @@
         :else (extract-from-forms env seq)))
 
 (defn- extract* [env form]
-  (cond (symbol? form)
+  (cond (and (instance? clojure.lang.IObj form)
+             (meta form) (not (::extracted (meta form))))
+        #_=> (merge (extract* env (meta form))
+                    (extract* env (utils/add-meta form {::extracted true})))
+        (symbol? form)
         #_=> (extract-from-symbol env form)
         (seq? form)
         #_=> (extract-from-seq env form)
@@ -140,10 +145,12 @@
 
 (def-special-extractor def
   [(_ name)
-   {name {:type :var :usage :def :name name}}]
+   {name {:type :var :usage :def :name name}}
+   (extract* env (meta name))]
   [(_ name expr)
    {name {:type :var :usage :def :name name}}
-   (extract* env expr)])
+   (merge (extract* env (meta name))
+          (extract* env expr))])
 
 (defn- extract-from-bindings [env bindings]
   (loop [env env, [[name expr] & more :as bindings] (partition 2 bindings), ret {}]
@@ -152,6 +159,7 @@
       (recur (extend env name)
              more
              (merge (assoc-if-marked-symbol ret name {:type :local :usage :def})
+                    (extract* env (meta name))
                     (extract* env expr))))))
 
 (def-special-extractor let*
@@ -171,12 +179,15 @@
           :else (recur (extend env name)
                        more
                        (->> {:type :local :usage :def}
-                            (assoc-if-marked-symbol ret name))))))
+                            (assoc-if-marked-symbol ret name)
+                            (merge (extract* env (meta name))))))))
 
 (defn- extract-from-clauses [env clauses]
   (->> (for [[args & body] clauses
              :let [[info env] (extract-from-args env args)]]
-         (merge info (extract-from-forms env body)))
+         (merge info
+                (extract* env (meta args))
+                (extract-from-forms env body)))
        (into {})))
 
 (def-special-extractor fn*
@@ -238,7 +249,9 @@
 
 (defn- extract-from-methods [env methods]
   (->> (for [[mname args & body] methods]
-         (merge (assoc-if-marked-symbol {} mname {:type :member :name mname})
+         (merge (extract* env (meta mname))
+                (assoc-if-marked-symbol {} mname {:type :member :name mname})
+                (extract-from-forms env (map meta args))
                 (assoc-each {} {:type :local :usage :def} args)
                 (extract-from-forms (extend-with-seq env args) body)))
        (into {})))

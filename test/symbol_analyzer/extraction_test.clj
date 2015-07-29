@@ -253,3 +253,34 @@
            4 {:type :class}, 5 {:type :member}, 6 {:type :local}, 7 {:type :var}
            8 {:type :local}, 9 {:type :local}, 10 {:type :class}, 11 {:type :member}
            12 {:type :local}, 13 {:type :local}, 14 {:type :local}, 15 {:type :local}})))
+
+(deftest extract-from-meta-test
+  (is (extracted
+        ^ #$0 String x
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        ^{:tag #$0 String} x
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        (def ^#$0 String x)
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        (def ^#$0 String x "hoge")
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        (let [^#$0 String x "hoge"] x)
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        (loop [^#$0 String x "hoge"] x)
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        (fn ^#$0 String [^#$1 String x] x)
+        {0 {:type :class :class (_ :guard #(= % java.lang.String))}
+         1 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        (reify
+          clojure.lang.IFn
+          (^#$0 Object invoke [this ^#$1 Object x] ^#$2 Object x))
+        {0 {:type :class :class (_ :guard #(= % java.lang.Object))}
+         1 {:type :class :class (_ :guard #(= % java.lang.Object))}
+         2 {:type :class :class (_ :guard #(= % java.lang.Object))}})))
