@@ -187,6 +187,7 @@
              :let [[info env] (extract-from-args env args)]]
          (merge info
                 (extract* env (meta args))
+                (extract-from-forms env (map meta args))
                 (extract-from-forms env body)))
        (into {})))
 
