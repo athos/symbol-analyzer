@@ -276,4 +276,11 @@
   (is (extracted
         (fn ^#$0 String [^#$1 String x] x)
         {0 {:type :class :class (_ :guard #(= % java.lang.String))}
-         1 {:type :class :class (_ :guard #(= % java.lang.String))}})))
+         1 {:type :class :class (_ :guard #(= % java.lang.String))}}))
+  (is (extracted
+        (reify
+          clojure.lang.IFn
+          (^#$0 Object invoke [this ^#$1 Object x] ^#$2 Object x))
+        {0 {:type :class :class (_ :guard #(= % java.lang.Object))}
+         1 {:type :class :class (_ :guard #(= % java.lang.Object))}
+         2 {:type :class :class (_ :guard #(= % java.lang.Object))}})))

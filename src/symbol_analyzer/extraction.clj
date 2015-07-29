@@ -249,7 +249,9 @@
 
 (defn- extract-from-methods [env methods]
   (->> (for [[mname args & body] methods]
-         (merge (assoc-if-marked-symbol {} mname {:type :member :name mname})
+         (merge (extract* env (meta mname))
+                (assoc-if-marked-symbol {} mname {:type :member :name mname})
+                (extract-from-forms env (map meta args))
                 (assoc-each {} {:type :local :usage :def} args)
                 (extract-from-forms (extend-with-seq env args) body)))
        (into {})))
