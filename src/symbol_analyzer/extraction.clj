@@ -70,11 +70,7 @@
 (defn- extract-from-expandable [env [op :as form]]
   (let [e (lookup env op)]
     (if (or (var? e) (nil? e))
-      ;; op may be a macro or .method or Class. or Class/method
-
-      ;; FIXME: transform from original interop form to dot
-      ;; special form using macroexpand is a little bit kludgy
-      ;; way, and in some corner cases it shouldn't work
+      ;; op may be a macro or .method or Class. or Class/member
       (let [expanded (macroexpand form)]
         (cond (= expanded form)
               #_=> (extract-from-forms env form)
@@ -82,7 +78,17 @@
               #_=> (-> {}
                        (assoc-if-marked-symbol op {:type :macro :macro e})
                        (merge (extract* env expanded)))
-              :else (extract* env expanded)))
+              :else (let [sname (str op)
+                          resolve-class (comp resolve symbol)]
+                      (cond-> (extract* env expanded)
+                        (.startsWith sname ".")
+                        #_=> (assoc-if-marked-symbol op {:type :member})
+                        (and (.endsWith sname ".")
+                             (resolve-class (subs sname 0 (dec (count sname)))))
+                        #_=> (assoc-if-marked-symbol op {:type :class :class (resolve-class (subs sname 0 (dec (count sname))))})
+                        (and (namespace op)
+                             (resolve-class (namespace op)))
+                        #_=> (assoc-if-marked-symbol op {:type :member :name (symbol (name op)) :class (resolve-class (namespace op))})))))
       (extract-from-forms env form))))
 
 (defn- extract-from-seq [env [maybe-op :as seq]]
