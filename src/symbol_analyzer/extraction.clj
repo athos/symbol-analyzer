@@ -40,6 +40,11 @@
           (cond (var? e) {m {:type :var :usage :ref :var e}}
                 (class? e) {m {:type :class :class e}}
                 e {m {:type :local :usage :ref :binding e}}
+                (namespace sym)
+                #_=> (when-let [c (resolve (symbol (namespace sym)))]
+                       (when (class? c)
+                         {m {:type :member :name (symbol (name sym))
+                             :class c}}))
                 :else nil)))
       {}))
 
