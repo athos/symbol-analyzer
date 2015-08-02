@@ -67,26 +67,27 @@
       (assoc-if-marked-symbol op {:type :special :op op})
       (merge (extract-from-forms env args))))
 
-(defn- extract-from-seq [env [maybe-op :as seq]]
-  (cond (special? seq)
-        #_=> (extract-from-special env seq)
-        (symbol? maybe-op)
-        #_=> (let [e (lookup env maybe-op)]
-               (if (or (var? e) (nil? e))
-                 ;; op may be a macro or .method or Class. or Class/method
+(defn- extract-from-expandable [env [op :as form]]
+  (let [e (lookup env op)]
+    (if (or (var? e) (nil? e))
+      ;; op may be a macro or .method or Class. or Class/method
 
-                 ;; FIXME: transform from original interop form to dot
-                 ;; special form using macroexpand is a little bit kludgy
-                 ;; way, and in some corner cases it shouldn't work
-                 (let [expanded (macroexpand seq)]
-                   (cond (= expanded seq)
-                         #_=> (extract-from-forms env seq)
-                         (var? e)
-                         #_=> (-> {}
-                                  (assoc-if-marked-symbol maybe-op {:type :macro :macro e})
-                                  (merge (extract* env expanded)))
-                         :else (extract* env expanded)))
-                 (extract-from-forms env seq)))
+      ;; FIXME: transform from original interop form to dot
+      ;; special form using macroexpand is a little bit kludgy
+      ;; way, and in some corner cases it shouldn't work
+      (let [expanded (macroexpand form)]
+        (cond (= expanded form)
+              #_=> (extract-from-forms env form)
+              (var? e)
+              #_=> (-> {}
+                       (assoc-if-marked-symbol op {:type :macro :macro e})
+                       (merge (extract* env expanded)))
+              :else (extract* env expanded)))
+      (extract-from-forms env form))))
+
+(defn- extract-from-seq [env [maybe-op :as seq]]
+  (cond (special? seq) (extract-from-special env seq)
+        (symbol? maybe-op) (extract-from-expandable env seq)
         :else (extract-from-forms env seq)))
 
 (defn- extract* [env form]
