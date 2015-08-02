@@ -71,7 +71,7 @@
   (let [e (lookup env op)]
     (if (or (var? e) (nil? e))
       ;; op may be a macro or .method or Class. or Class/member
-      (let [expanded (macroexpand form)]
+      (let [expanded (macroexpand-1 form)]
         (cond (= expanded form)
               #_=> (extract-from-forms env form)
               (var? e)
