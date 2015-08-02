@@ -217,6 +217,20 @@
         (. #$0 Integer #$1 valueOf 1))
       {0 {:type :class}, 1 {:type :member}}))
 
+(deftest extract-from-java-interop-test
+  (extracted
+    (#$0 String. "foo")
+    {0 {:type :class :class (_ :guard #(= % java.lang.String))}})
+  (extracted
+    (#$0 Long/parseLong "42")
+    {0 {:type :member :class (_ :guard #(= % java.lang.Long))}})
+  (extracted
+    #$0 System/out
+    {0 {:type :member :class (_ :guard #(= % java.lang.System))}})
+  (extracted
+    (#$0 .member x 42)
+    {0 {:type :member}}))
+
 (deftest extract-from-case-test
   (extracted
     (#$0 case '#$1 bar
