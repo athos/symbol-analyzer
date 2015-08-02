@@ -63,7 +63,7 @@
   (binding [*symbol-id-key* symbol-id-key
             *symbol-info-key* symbol-info-key]
     (let [sexp (mark-sexp sexp)
-          info (extract sexp :ns ns :locals locals :symbol-key symbol-id-key)]
+          info (extract sexp :ns ns :locals locals :symbol-id-key symbol-id-key)]
       (annotate-sexp sexp info))))
 
 (defn analyze [root & {:keys [ns symbol-id-key symbol-info-key suppress-eval?]
@@ -72,7 +72,7 @@
   (binding [*symbol-id-key* symbol-id-key
             *symbol-info-key* symbol-info-key]
     (let [root (mark root)
-          sexps (convert root :ns ns :symbol-key symbol-id-key)
+          sexps (convert root :ns ns :symbol-id-key symbol-id-key)
           loader (.getContextClassLoader (Thread/currentThread))
           ext (fn [info sexp]
                 (when-not suppress-eval?
@@ -80,6 +80,6 @@
                     (eval sexp)))
                 (with-bindings {clojure.lang.Compiler/LOADER loader}
                   (merge info
-                         (extract sexp :ns ns :symbol-key symbol-id-key))))
+                         (extract sexp :ns ns :symbol-id-key symbol-id-key))))
           info (reduce ext {} sexps)]
       (annotate root info))))

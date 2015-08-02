@@ -3,10 +3,10 @@
   (:require [clojure.core.match :refer [match]]
             [symbol-analyzer.utils :as utils]))
 
-(def ^:private ^:dynamic *symbol-key*)
+(def ^:private ^:dynamic *symbol-id-key*)
 
 (defn- get-id [x]
-  (get (meta x) *symbol-key*))
+  (get (meta x) *symbol-id-key*))
 
 ;;
 ;; Environment
@@ -102,9 +102,9 @@
         #_=> (extract-from-forms env form)
         :else {}))
 
-(defn extract [form & {:keys [ns locals symbol-key]
-                       :or {ns *ns*, locals nil, symbol-key :id}}]
-  (binding [*symbol-key* symbol-key]
+(defn extract [form & {:keys [ns locals symbol-id-key]
+                       :or {ns *ns*, locals nil, symbol-id-key :id}}]
+  (binding [*symbol-id-key* symbol-id-key]
     (let [locals (into {} (for [name locals] [name :user-specified]))]
       (binding [*ns* ns]
         (doall (extract* (make-env locals) form))))))
