@@ -240,7 +240,9 @@
    (extract-from-forms env args)])
 
 (def-special-extractor .
-  [(_ class-or-obj field-or-method & args)
+  [(_ class-or-obj ([method & args] :seq))
+   (extract* env `(. ~class-or-obj ~method ~@args))]
+  [(_ class-or-obj (field-or-method :guard symbol) & args)
    {field-or-method {:type :member :name field-or-method}}
    (merge (extract* env class-or-obj)
           (extract-from-forms env args))])

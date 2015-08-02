@@ -212,6 +212,10 @@
     (let [s "foo"]
       (. #$0 s #$1 substring 0 (#$2 inc 0)))
     {0 {:type :local}, 1 {:type :member}, 2 {:type :var}})
+  (extracted
+    (let [s "42"]
+      (. #$0 Long (#$1 parseLong #$2 s)))
+    {0 {:type :class}, 1 {:type :member}, 2 {:type :local}})
   #_(extracted
       (let [Integer "foo"]
         (. #$0 Integer #$1 valueOf 1))
