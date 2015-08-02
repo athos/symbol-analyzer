@@ -40,6 +40,11 @@
           (cond (var? e) {m {:type :var :usage :ref :var e}}
                 (class? e) {m {:type :class :class e}}
                 e {m {:type :local :usage :ref :binding e}}
+                (namespace sym)
+                #_=> (when-let [c (resolve (symbol (namespace sym)))]
+                       (when (class? c)
+                         {m {:type :member :name (symbol (name sym))
+                             :class c}}))
                 :else nil)))
       {}))
 
@@ -62,26 +67,33 @@
       (assoc-if-marked-symbol op {:type :special :op op})
       (merge (extract-from-forms env args))))
 
-(defn- extract-from-seq [env [maybe-op :as seq]]
-  (cond (special? seq)
-        #_=> (extract-from-special env seq)
-        (symbol? maybe-op)
-        #_=> (let [e (lookup env maybe-op)]
-               (if (or (var? e) (nil? e))
-                 ;; op may be a macro or .method or Class. or Class/method
+(defn- extract-from-expandable [env [op :as form]]
+  (let [e (lookup env op)]
+    (if (or (var? e) (nil? e))
+      ;; op may be a macro or .method or Class. or Class/member
+      (let [expanded (macroexpand-1 form)]
+        (cond (= expanded form)
+              #_=> (extract-from-forms env form)
+              (var? e)
+              #_=> (-> {}
+                       (assoc-if-marked-symbol op {:type :macro :macro e})
+                       (merge (extract* env expanded)))
+              :else (let [sname (str op)
+                          resolve-class (comp resolve symbol)]
+                      (cond-> (extract* env expanded)
+                        (.startsWith sname ".")
+                        #_=> (assoc-if-marked-symbol op {:type :member})
+                        (and (.endsWith sname ".")
+                             (resolve-class (subs sname 0 (dec (count sname)))))
+                        #_=> (assoc-if-marked-symbol op {:type :class :class (resolve-class (subs sname 0 (dec (count sname))))})
+                        (and (namespace op)
+                             (resolve-class (namespace op)))
+                        #_=> (assoc-if-marked-symbol op {:type :member :name (symbol (name op)) :class (resolve-class (namespace op))})))))
+      (extract-from-forms env form))))
 
-                 ;; FIXME: transform from original interop form to dot
-                 ;; special form using macroexpand is a little bit kludgy
-                 ;; way, and in some corner cases it shouldn't work
-                 (let [expanded (macroexpand seq)]
-                   (cond (= expanded seq)
-                         #_=> (extract-from-forms env seq)
-                         (var? e)
-                         #_=> (-> {}
-                                  (assoc-if-marked-symbol maybe-op {:type :macro :macro e})
-                                  (merge (extract* env expanded)))
-                         :else (extract* env expanded)))
-                 (extract-from-forms env seq)))
+(defn- extract-from-seq [env [maybe-op :as seq]]
+  (cond (special? seq) (extract-from-special env seq)
+        (symbol? maybe-op) (extract-from-expandable env seq)
         :else (extract-from-forms env seq)))
 
 (defn- extract* [env form]
@@ -228,7 +240,9 @@
    (extract-from-forms env args)])
 
 (def-special-extractor .
-  [(_ class-or-obj field-or-method & args)
+  [(_ class-or-obj ([method & args] :seq))
+   (extract* env `(. ~class-or-obj ~method ~@args))]
+  [(_ class-or-obj (field-or-method :guard symbol) & args)
    {field-or-method {:type :member :name field-or-method}}
    (merge (extract* env class-or-obj)
           (extract-from-forms env args))])
