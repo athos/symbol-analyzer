@@ -242,17 +242,23 @@
          4 {:type :var}, 5 {:type :local}, 6 {:type :class}, 7 {:type :member}
          8 {:type :local}, 9 {:type :local}, 10 {:type :var}, 11 {:type :local}})))
 
-#_(deftest extract-from-deftype-test
-    (is (extracted
-          (#$0 deftype #$1 T [#$2 x #$3 y]
-            #$4 Runnable
-            (#$5 run [#$6 this] (#$7 println #$8 this #$9 x))
-            #$10 clojure.lang.IFn
-            (#$11 invoke [#$12 this #$13 x] [#$14 x #$15 y]))
-          {0 {:type :macro}, 1 {:type :class}, 2 {:type :field}, 3 {:type :field}
-           4 {:type :class}, 5 {:type :member}, 6 {:type :local}, 7 {:type :var}
-           8 {:type :local}, 9 {:type :local}, 10 {:type :class}, 11 {:type :member}
-           12 {:type :local}, 13 {:type :local}, 14 {:type :local}, 15 {:type :local}})))
+;; kludge for extraction from deftype form without errors
+(in-ns 'user)
+(deftype T [x y])
+
+(in-ns 'symbol-analyzer.extraction-test)
+
+(deftest extract-from-deftype-test
+  (is (extracted
+        (#$0 deftype #$1 T [#$2 x #$3 y]
+             #$4 Runnable
+             (#$5 run [#$6 this] (#$7 println #$8 this #$9 x))
+             #$10 clojure.lang.IFn
+             (#$11 invoke [#$12 this #$13 x] [#$14 x #$15 y]))
+        {0 {:type :macro}, 1 {:type :class}, 2 {:type :field}, 3 {:type :field}
+         4 {:type :class}, 5 {:type :member}, 6 {:type :local}, 7 {:type :var}
+         8 {:type :local}, 9 {:type :local}, 10 {:type :class}, 11 {:type :member}
+         12 {:type :local}, 13 {:type :local}, 14 {:type :local}, 15 {:type :local}})))
 
 (deftest extract-from-meta-test
   (is (extracted
