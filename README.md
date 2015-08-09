@@ -4,19 +4,17 @@
 
 ## Installation
 
-Latest stable release is 0.1.0.
+Latest stable release is 0.1.1.
 
 Add the following dependency to your `project.clj` file:
-```clojure
-[symbol-analyzer "0.1.0"]
-```
+
+[![Clojars Project](http://clojars.org/symbol-analyzer/latest-version.svg)](http://clojars.org/symbol-analyzer)
 
 ## Basic Usage
 
 The basic usages of `symbol-analyzer` are *extract* and *analyze*.
 
-
-**Note** `symbol-analyzer` is still of alpha quality, and its APIs and the format of their return values described below are highly subject to change.
+**Note** `symbol-analyzer` is still of alpha quality, and **its APIs (the format of their return values described below, especially) are highly subject to change.**
 
 ### Extract
 
