@@ -114,8 +114,10 @@
         #_=> (extract-from-forms env form)
         :else {}))
 
-(defn extract [form & {:keys [ns locals symbol-id-key]
-                       :or {ns *ns*, locals nil, symbol-id-key :id}}]
+(defn extract
+  "Takes an S-expression form and extracts symbol information from it for symbols specified by assigning unique id as metadata."
+  [form & {:keys [ns locals symbol-id-key]
+           :or {ns *ns*, locals nil, symbol-id-key :id}}]
   (binding [*symbol-id-key* symbol-id-key]
     (let [locals (into {} (for [name locals] [name :user-specified]))]
       (binding [*ns* ns]

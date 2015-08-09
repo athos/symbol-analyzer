@@ -57,18 +57,20 @@
 ;; Entry points
 ;;
 
-(defn analyze-sexp [sexp & {:keys [ns locals symbol-id-key symbol-info-key]
-                            :or {ns *ns*, locals nil, symbol-id-key :id,
-                                 symbol-info-key :symbol-info}}]
+(defn analyze-sexp
+  "Given an S-expression form, returns another one equivalent to the input with symbol information annotated as metadata to each symbol."
+  [sexp & {:keys [ns locals symbol-id-key symbol-info-key]
+           :or {ns *ns*, locals nil, symbol-id-key :id, symbol-info-key :symbol-info}}]
   (binding [*symbol-id-key* symbol-id-key
             *symbol-info-key* symbol-info-key]
     (let [sexp (mark-sexp sexp)
           info (extract sexp :ns ns :locals locals :symbol-id-key symbol-id-key)]
       (annotate-sexp sexp info))))
 
-(defn analyze [root & {:keys [ns symbol-id-key symbol-info-key suppress-eval?]
-                       :or {ns *ns*, symbol-id-key :id,
-                            symbol-info-key :symbol-info}}]
+(defn analyze
+  "Given an Sjacket node, returns another one equivalent to the input with symbol information associated with the specified key."
+  [root & {:keys [ns symbol-id-key symbol-info-key suppress-eval?]
+           :or {ns *ns*, symbol-id-key :id, symbol-info-key :symbol-info}}]
   (binding [*symbol-id-key* symbol-id-key
             *symbol-info-key* symbol-info-key]
     (let [root (mark root)
