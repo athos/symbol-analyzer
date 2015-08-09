@@ -11,5 +11,4 @@
              :dev {:dependencies [[org.clojure/tools.namespace "0.2.10"]]
                    :source-paths ["dev"]}}
   :aliases {"all" ["with-profile" "dev:1.5:1.6"]}
-  :lein-release {:deploy-via :clojars}
-  :global-vars {*warn-on-reflection* true})
+  :lein-release {:deploy-via :clojars})
